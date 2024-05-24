@@ -1,11 +1,14 @@
 # mira-calle
+
 みらチャレ
 
-1. envファイルの作成
- - 開発用のenvファイル「.env.dev」ファイルをdocker-compose.dev.ymlと同じ階層に作成する。
- - 本番用のenvファイル「.env.prod」ファイルをdocker-compose.prod.ymlと同じ階層に作成する。
- 
- 【例】
+1. env ファイルの作成
+
+- 開発用の env ファイル「.env.dev」ファイルを docker-compose.dev.yml と同じ階層に作成する。
+- 本番用の env ファイル「.env.prod」ファイルを docker-compose.prod.yml と同じ階層に作成する。
+
+【例】
+
 ```
 # MYSQLのルートパスワードがないとコンテナが起動しない
 # MYSQL_ROOT_PASSWORD="任意のルートパスワード"
@@ -29,24 +32,29 @@ PMA_USER=root
 PMA_PASSWORD=root
 ```
 
-2. Djangoのプロジェクト構成を作成する。（最後の「.」ドットを忘れずに！）
+2. Django のプロジェクト構成を作成する。（最後の「.」ドットを忘れずに！）
+
 ```
 docker compose -f docker-compose.dev.yml run app django-admin startproject <プロジェクト名> .
 ```
 
-3. <プロジェクト名>/settings.pyを編集する。
-- osのモジュールをインポート
+3. <プロジェクト名>/settings.py を編集する。
+
+- os のモジュールをインポート
+
 ```
 import os
 ```
 
 - 全ての場所からアクセス出来るように設定
+
 ```
 # ALLOWED_HOSTS = []
 ALLOWED_HOSTS = ['*']
 ```
 
-- templatesディレクトリの場所を設定
+- templates ディレクトリの場所を設定
+
 ```
 TEMPLATES = [
     {
@@ -67,6 +75,7 @@ TEMPLATES = [
 ```
 
 - データベースへの接続方法を設定
+
 ```
 # DATABASES = {
 #     'default': {
@@ -89,6 +98,7 @@ DATABASES = {
 ```
 
 - 使用言語とロケーションを設定
+
 ```
 # LANGUAGE_CODE = 'en-us'
 
@@ -100,7 +110,8 @@ LANGUAGE_CODE = 'ja'
 TIME_ZONE = 'Asia/Tokyo'
 ```
 
-- static回りを設定
+- static 回りを設定
+
 ```
 # STATIC_ROOTを設定
 # Djangoの管理者画面にHTML、CSS、Javascriptが適用されます
@@ -108,12 +119,14 @@ STATIC_ROOT = "/static/"
 STATIC_URL = "/static/"
 ```
 
-4. Djangoアプリ構成を作成する。
+4. Django アプリ構成を作成する。
+
 ```
 docker compose -f docker-compose.dev.yml run app python manage.py startapp <アプリ名>
 ```
 
-5. <プロジェクト名>/settings.pyにアプリを追加する。
+5. <プロジェクト名>/settings.py にアプリを追加する。
+
 ```
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -126,7 +139,8 @@ INSTALLED_APPS = [
 ]
 ```
 
-6. Dockerを削除する。
+6. Docker を削除する。
+
 ```
 # docker-compose.dev.ymlのコンテナを一括で停止・削除
 docker compose -f docker-compose.dev.yml down -v
@@ -142,17 +156,20 @@ docker system prune
 
 ```
 
-7. Dockerを起動する。
+7. Docker を起動する。
+
 ```
 docker compose -f docker-compose.dev.yml up -d --build
 ```
 
 8. 起動確認する。
+
 ```
 http://localhost:8000
 ```
 
-9. 各Djangoのコマンド実行方法。
+9. 各 Django のコマンド実行方法。
+
 ```
 # マイグレーションを実行
 docker compose -f docker-compose.dev.yml exec app python manage.py makemigrations <アプリ名> --noinput
@@ -166,9 +183,45 @@ docker compose -f docker-compose.dev.yml exec app python manage.py createsuperus
 ```
 
 10. 本番用の設定
-- django/uwsgi.iniをアプリ用に修正する。
-- 本番用Dockerを起動する。
+
+- django/uwsgi.ini をアプリ用に修正する。
+- 本番用 Docker を起動する。
+
 ```
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
+11. 開発のルール
+
+#### 新しい機能を追加/既存のソースを修正する時
+
+修正に入る前に、feature ブランチを新しく作成します。  
+ブランチ名は、修正内容が分かるように命名をしてください。
+
+```
+git checkout develop
+git checkout -b "feature/(ブランチ名)"
+```
+
+ブランチ名の記述例(ルーティング先を追加する修正をする場合)
+
+```
+git checkout -b "feature/add_routes"
+```
+
+※このように作成した feature ブランチで作業を開始します。
+
+#### ソース修正完了後
+
+ソースの修正が完了したら、ステージングした後にコミット、push をしていきます。
+
+```
+git add .
+git commit -m "(コミットメッセージ)"
+git push -u origin feature/(ブランチ名)
+```
+
+(ブランチ名は改修内容が伝わるように記述)  
+例: feature/config.py にルーティング先を追加  
+※その後、github 上で PR を作成する。  
+→ 相互レビュー？？
